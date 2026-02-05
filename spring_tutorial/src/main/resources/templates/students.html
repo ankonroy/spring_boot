@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students - School Management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+        header { background-color: #2c3e50; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { text-align: center; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { font-size: 14px; }
+        .user-role { background: #1abc9c; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
+        nav { background-color: #34495e; padding: 15px; text-align: center; }
+        nav a { color: white; text-decoration: none; margin: 0 15px; padding: 8px 15px; }
+        nav a:hover { background-color: #1abc9c; border-radius: 4px; }
+        main { max-width: 1000px; margin: 30px auto; padding: 20px; }
+        .card { background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card h2 { color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .info-box { background: #e8f6f3; border-left: 4px solid #1abc9c; padding: 15px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #3498db; color: white; }
+        tr:hover { background-color: #f5f5f5; }
+        .btn { background-color: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn:hover { background-color: #2980b9; }
+        .btn-secondary { background-color: #95a5a6; }
+        .btn-success { background-color: #27ae60; }
+        footer { background-color: #2c3e50; color: white; text-align: center; padding: 15px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>School Management System</h1>
+        <div class="user-info">
+            <span>Welcome, <strong sec:authentication="name">User</strong></span>
+            <span class="user-role" sec:authentication="principal.authorities">ROLE_USER</span>
+            <form th:action="@{/logout}" method="get" style="display: inline;">
+                <button type="submit" class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Logout</button>
+            </form>
+        </div>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/departments.html">Departments</a>
+        <a href="/teachers.html">Teachers</a>
+        <a href="/students.html">Students</a>
+        <a href="/courses.html">Courses</a>
+        <a href="/profile">My Profile</a>
+    </nav>
+    <main>
+        <div th:if="${error}" class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px; border-radius: 4px; margin-bottom: 20px;" th:text="${error}"></div>
+        
+        <div class="card">
+            <h2>Students</h2>
+            
+            <div class="info-box" sec:authorize="hasRole('TEACHER')">
+                <strong>Teacher Access:</strong> You can add new students by clicking the "Add Student" button below. Students cannot create their own profiles.
+            </div>
+            
+            <div class="info-box" sec:authorize="hasRole('STUDENT')">
+                <strong>Student Access:</strong> You can view your profile and update your personal information. Contact your teacher if you need to change your courses or department.
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="student : ${students}">
+                        <td th:text="${student.id}">1</td>
+                        <td th:text="${student.firstName + ' ' + student.lastName}">Alice Johnson</td>
+                        <td th:text="${student.email}">alice.johnson@student.edu</td>
+                        <td>Student</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(students)}">
+                        <td colspan="4" style="text-align: center; color: #666;">No students found</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <a href="/students/add" class="btn btn-success" sec:authorize="hasRole('TEACHER')">Add Student</a>
+            <a href="/profile" class="btn" sec:authorize="hasRole('STUDENT')">Edit My Profile</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2024 School Management System</p>
+    </footer>
+</body>
+</html>
+
