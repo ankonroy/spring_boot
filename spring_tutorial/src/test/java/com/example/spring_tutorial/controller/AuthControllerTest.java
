@@ -1,0 +1,142 @@
+package com.example.spring_tutorial.controller;
+
+import com.example.spring_tutorial.dto.LoginDTO;
+import com.example.spring_tutorial.dto.UserRegistrationDTO;
+import com.example.spring_tutorial.model.User;
+import com.example.spring_tutorial.service.AuthService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for AuthController.
+ * Tests authentication and registration endpoints.
+ */
+@ExtendWith(MockitoExtension.class)
+public class AuthControllerTest {
+
+    @Mock
+    private AuthService authService;
+
+    @InjectMocks
+    private AuthController authController;
+
+    @Mock
+    private Model model;
+
+    @Mock
+    private BindingResult bindingResult;
+
+    private UserRegistrationDTO validRegistrationDTO;
+    private LoginDTO validLoginDTO;
+    private User testUser;
+
+    @BeforeEach
+    void setUp() {
+        validRegistrationDTO = new UserRegistrationDTO();
+        validRegistrationDTO.setFirstName("John");
+        validRegistrationDTO.setLastName("Doe");
+        validRegistrationDTO.setEmail("john.doe@example.com");
+        validRegistrationDTO.setPassword("password123");
+        validRegistrationDTO.setConfirmPassword("password123");
+        validRegistrationDTO.setDateOfBirth(LocalDate.of(1990, 1, 1));
+
+        validLoginDTO = new LoginDTO();
+        validLoginDTO.setEmail("john.doe@example.com");
+        validLoginDTO.setPassword("password123");
+
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setFirstName("John");
+        testUser.setLastName("Doe");
+        testUser.setEmail("john.doe@example.com");
+        testUser.setRole(User.Role.TEACHER);
+    }
+
+    /**
+     * Test 1: Verify API login returns success response.
+     */
+    @Test
+    void testApiLogin() {
+        when(authService.verifyPassword(anyString(), anyString())).thenReturn(true);
+        when(authService.getUserByEmail(anyString())).thenReturn(testUser);
+
+        var response = authController.apiLogin(validLoginDTO);
+
+        assertNotNull(response);
+    }
+
+    /**
+     * Test 2: Verify API register returns success response.
+     */
+    @Test
+    void testApiRegister() {
+        when(authService.registerTeacher(any(UserRegistrationDTO.class))).thenReturn(testUser);
+
+        var response = authController.apiRegister(validRegistrationDTO);
+
+        assertNotNull(response);
+    }
+
+    /**
+     * Test 3: Verify logout redirects to login page.
+     */
+    @Test
+    void testLogout() {
+        jakarta.servlet.http.HttpServletRequest request = mock(jakarta.servlet.http.HttpServletRequest.class);
+        jakarta.servlet.http.HttpSession session = mock(jakarta.servlet.http.HttpSession.class);
+        when(request.getSession(false)).thenReturn(session);
+
+        String viewName = authController.logout(request);
+
+        assertEquals("redirect:/login?logout=true", viewName);
+    }
+
+    /**
+     * Test 4: Verify process registration returns login view on success.
+     */
+    @Test
+    void testProcessRegistration() {
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(authService.registerTeacher(any(UserRegistrationDTO.class))).thenReturn(testUser);
+
+        String viewName = authController.processRegistration(validRegistrationDTO, bindingResult, model);
+
+        assertEquals("login", viewName);
+    }
+
+    /**
+     * Test 5: Verify show login page returns login view.
+     */
+    @Test
+    void testShowLoginPage() {
+        String viewName = authController.showLoginPage(model, null, null);
+
+        assertEquals("login", viewName);
+        verify(model).addAttribute(anyString(), any());
+    }
+
+    /**
+     * Test 6: Verify show registration page returns register view.
+     */
+    @Test
+    void testShowRegistrationPage() {
+        String viewName = authController.showRegistrationPage(model);
+
+        assertEquals("register", viewName);
+        verify(model).addAttribute(anyString(), any());
+    }
+}
+

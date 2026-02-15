@@ -1,0 +1,193 @@
+package com.example.spring_tutorial.service;
+
+import com.example.spring_tutorial.dto.StudentDTO;
+import com.example.spring_tutorial.exception.ResourceNotFoundException;
+import com.example.spring_tutorial.exception.UnauthorizedAccessException;
+import com.example.spring_tutorial.model.Department;
+import com.example.spring_tutorial.model.Student;
+import com.example.spring_tutorial.repository.DepartmentRepository;
+import com.example.spring_tutorial.repository.StudentRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for StudentService.
+ * Tests student profile update and retrieval operations.
+ */
+@ExtendWith(MockitoExtension.class)
+public class StudentServiceTest {
+
+    @Mock
+    private StudentRepository studentRepository;
+
+    @Mock
+    private DepartmentRepository departmentRepository;
+
+    @InjectMocks
+    private StudentService studentService;
+
+    private Student testStudent;
+    private Department testDepartment;
+
+    @BeforeEach
+    void setUp() {
+        testDepartment = new Department();
+        testDepartment.setId(1L);
+        testDepartment.setName("Computer Science");
+        testDepartment.setCode("CS");
+        testDepartment.setEstablishedDate(LocalDate.of(2020, 1, 1));
+
+        testStudent = new Student();
+        testStudent.setId(1L);
+        testStudent.setFirstName("Jane");
+        testStudent.setLastName("Smith");
+        testStudent.setEmail("jane.smith@example.com");
+        testStudent.setStudentId("STU001");
+        testStudent.setDateOfBirth(LocalDate.of(2000, 1, 1));
+        testStudent.setEnrollmentDate(LocalDate.of(2020, 9, 1));
+        testStudent.setDepartment(testDepartment);
+        testStudent.setCreatedBy("teacher@example.com");
+    }
+
+    /**
+     * Test 1: Verify getting all students returns list.
+     */
+    @Test
+    void testGetAllStudents() {
+        when(studentRepository.findAll()).thenReturn(List.of(testStudent));
+
+        List<StudentDTO> students = studentService.getAllStudents();
+
+        assertNotNull(students);
+        assertEquals(1, students.size());
+        assertEquals("Jane", students.get(0).getFirstName());
+    }
+
+    /**
+     * Test 2: Verify getting student by ID returns student when exists.
+     */
+    @Test
+    void testGetStudentById() {
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(testStudent));
+
+        StudentDTO found = studentService.getStudentById(1L);
+
+        assertNotNull(found);
+        assertEquals(1L, found.getId());
+        assertEquals("Jane", found.getFirstName());
+    }
+
+    /**
+     * Test 3: Verify getting student by email returns student when exists.
+     */
+    @Test
+    void testGetStudentByEmail() {
+        when(studentRepository.findByEmail("jane.smith@example.com")).thenReturn(Optional.of(testStudent));
+
+        StudentDTO found = studentService.getStudentByEmail("jane.smith@example.com");
+
+        assertNotNull(found);
+        assertEquals("jane.smith@example.com", found.getEmail());
+    }
+
+    /**
+     * Test 4: Verify student can update their own profile.
+     */
+    @Test
+    void testUpdateStudentOwnProfile() {
+        StudentDTO updateDTO = new StudentDTO();
+        updateDTO.setFirstName("JaneUpdated");
+        updateDTO.setLastName("SmithUpdated");
+
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(testStudent));
+        when(studentRepository.save(any(Student.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        StudentDTO result = studentService.updateStudent(1L, updateDTO, "jane.smith@example.com");
+
+        assertEquals("JaneUpdated", result.getFirstName());
+        assertEquals("SmithUpdated", result.getLastName());
+    }
+
+    /**
+     * Test 5: Verify teacher who created student can update their profile.
+     */
+    @Test
+    void testUpdateStudentByCreatingTeacher() {
+        StudentDTO updateDTO = new StudentDTO();
+        updateDTO.setFirstName("JaneUpdatedByTeacher");
+
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(testStudent));
+        when(studentRepository.save(any(Student.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        StudentDTO result = studentService.updateStudent(1L, updateDTO, "teacher@example.com");
+
+        assertEquals("JaneUpdatedByTeacher", result.getFirstName());
+    }
+
+    /**
+     * Test 6: Verify unauthorized user cannot update student profile.
+     */
+    @Test
+    void testUpdateStudentUnauthorized() {
+        StudentDTO updateDTO = new StudentDTO();
+        updateDTO.setFirstName("Hacked");
+
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(testStudent));
+
+        assertThrows(UnauthorizedAccessException.class, () -> {
+            studentService.updateStudent(1L, updateDTO, "unauthorized@example.com");
+        });
+    }
+
+    /**
+     * Test 7: Verify teacher who created student can delete their profile.
+     */
+    @Test
+    void testDeleteStudentByCreatingTeacher() {
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(testStudent));
+        doNothing().when(studentRepository).delete(testStudent);
+
+        assertDoesNotThrow(() -> {
+            studentService.deleteStudent(1L, "teacher@example.com");
+        });
+
+        verify(studentRepository).delete(testStudent);
+    }
+
+    /**
+     * Test 8: Verify unauthorized user cannot delete student profile.
+     */
+    @Test
+    void testDeleteStudentUnauthorized() {
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(testStudent));
+
+        assertThrows(UnauthorizedAccessException.class, () -> {
+            studentService.deleteStudent(1L, "unauthorized@example.com");
+        });
+    }
+
+    /**
+     * Test 9: Verify student not found throws exception.
+     */
+    @Test
+    void testGetStudentByIdNotFound() {
+        when(studentRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            studentService.getStudentById(999L);
+        });
+    }
+}
+

@@ -1,0 +1,130 @@
+package com.example.spring_tutorial.controller;
+
+import com.example.spring_tutorial.model.Department;
+import com.example.spring_tutorial.service.DepartmentService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for DepartmentController.
+ * Tests department CRUD operations via controller.
+ */
+@ExtendWith(MockitoExtension.class)
+public class DepartmentControllerTest {
+
+    @Mock
+    private DepartmentService departmentService;
+
+    @InjectMocks
+    private DepartmentController departmentController;
+
+    @Mock
+    private Model model;
+
+    @Mock
+    private BindingResult bindingResult;
+
+    private Department testDepartment;
+
+    @BeforeEach
+    void setUp() {
+        testDepartment = new Department();
+        testDepartment.setId(1L);
+        testDepartment.setName("Computer Science");
+        testDepartment.setCode("CS");
+        testDepartment.setDescription("CS Department");
+        testDepartment.setEstablishedDate(LocalDate.of(2020, 1, 1));
+    }
+
+    /**
+     * Test 1: Verify create department returns success view.
+     */
+    @Test
+    void testCreateDepartment() {
+        Department newDepartment = new Department();
+        newDepartment.setName("Mathematics");
+        newDepartment.setCode("MATH");
+        newDepartment.setDescription("Math Department");
+
+        when(departmentService.createDepartment(any(Department.class))).thenReturn(testDepartment);
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        String viewName = departmentController.createDepartment(newDepartment, bindingResult, model);
+
+        assertEquals("redirect:/departments", viewName);
+        verify(departmentService).createDepartment(any(Department.class));
+    }
+
+    /**
+     * Test 2: Verify delete department returns redirect.
+     */
+    @Test
+    void testDeleteDepartment() {
+        doNothing().when(departmentService).deleteDepartment(1L);
+
+        String viewName = departmentController.deleteDepartment(1L);
+
+        assertEquals("redirect:/departments", viewName);
+        verify(departmentService).deleteDepartment(1L);
+    }
+
+    /**
+     * Test 3: Verify getting all departments returns departments list view.
+     */
+    @Test
+    void testGetAllDepartments() {
+        when(departmentService.getAllDepartments()).thenReturn(List.of(testDepartment));
+
+        String viewName = departmentController.getAllDepartments(model);
+
+        assertEquals("departments", viewName);
+        verify(model).addAttribute("departments", List.of(testDepartment));
+    }
+
+    /**
+     * Test 4: Verify getting department by ID returns correct view.
+     */
+    @Test
+    void testGetDepartmentById() {
+        when(departmentService.getDepartmentById(1L)).thenReturn(testDepartment);
+
+        String viewName = departmentController.getDepartmentById(1L, model);
+
+        assertEquals("department-detail", viewName);
+        verify(model).addAttribute("department", testDepartment);
+    }
+
+    /**
+     * Test 5: Verify update department returns redirect.
+     */
+    @Test
+    void testUpdateDepartment() {
+        Department updatedDepartment = new Department();
+        updatedDepartment.setName("Computer Science Updated");
+        updatedDepartment.setCode("CS");
+
+        when(departmentService.updateDepartment(eq(1L), any(Department.class))).thenReturn(testDepartment);
+        when(bindingResult.hasErrors()).thenReturn(false);
+
+        String viewName = departmentController.updateDepartment(1L, updatedDepartment, bindingResult, model);
+
+        assertEquals("redirect:/departments", viewName);
+        verify(departmentService).updateDepartment(eq(1L), any(Department.class));
+    }
+}
+

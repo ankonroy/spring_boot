@@ -1,0 +1,189 @@
+package com.example.spring_tutorial.service;
+
+import com.example.spring_tutorial.dto.UserRegistrationDTO;
+import com.example.spring_tutorial.model.User;
+import com.example.spring_tutorial.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for AuthService.
+ * Tests authentication, registration, password management.
+ */
+@ExtendWith(MockitoExtension.class)
+public class AuthServiceTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @InjectMocks
+    private AuthService authService;
+
+    private UserRegistrationDTO validRegistrationDTO;
+    private User testUser;
+
+    @BeforeEach
+    void setUp() {
+        validRegistrationDTO = new UserRegistrationDTO();
+        validRegistrationDTO.setFirstName("John");
+        validRegistrationDTO.setLastName("Doe");
+        validRegistrationDTO.setEmail("john.doe@example.com");
+        validRegistrationDTO.setPassword("password123");
+        validRegistrationDTO.setConfirmPassword("password123");
+        validRegistrationDTO.setDateOfBirth(LocalDate.of(1990, 1, 1));
+
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setFirstName("John");
+        testUser.setLastName("Doe");
+        testUser.setEmail("john.doe@example.com");
+        testUser.setPassword("encodedPassword");
+        testUser.setRole(User.Role.TEACHER);
+        testUser.setDateOfBirth(LocalDate.of(1990, 1, 1));
+    }
+
+    /**
+     * Test 1: Verify successful teacher registration.
+     */
+    @Test
+    void testRegisterTeacher() {
+        when(userRepository.existsByEmail(validRegistrationDTO.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            user.setId(1L);
+            return user;
+        });
+
+        User registeredUser = authService.registerTeacher(validRegistrationDTO);
+
+        assertNotNull(registeredUser);
+        assertEquals("John", registeredUser.getFirstName());
+        assertEquals("Doe", registeredUser.getLastName());
+        assertEquals("john.doe@example.com", registeredUser.getEmail());
+        assertEquals(User.Role.TEACHER, registeredUser.getRole());
+        verify(userRepository).save(any(User.class));
+    }
+
+    /**
+     * Test 2: Verify authentication with valid credentials returns user.
+     */
+    @Test
+    void testAuthenticate() {
+        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
+
+        User authenticatedUser = authService.authenticate("john.doe@example.com", "password123");
+
+        assertNotNull(authenticatedUser);
+        assertEquals("john.doe@example.com", authenticatedUser.getEmail());
+        assertEquals(User.Role.TEACHER, authenticatedUser.getRole());
+    }
+
+    /**
+     * Test 3: Verify successful password change.
+     */
+    @Test
+    void testChangePassword() {
+        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.encode("newPassword")).thenReturn("encodedNewPassword");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        authService.changePassword("john.doe@example.com", "newPassword");
+
+        verify(passwordEncoder).encode("newPassword");
+        verify(userRepository).save(any(User.class));
+    }
+
+    /**
+     * Test 4: Verify password verification returns true for matching passwords.
+     */
+    @Test
+    void testVerifyPassword() {
+        String rawPassword = "password123";
+        String encodedPassword = "encodedPassword";
+        when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
+
+        boolean result = authService.verifyPassword(rawPassword, encodedPassword);
+
+        assertTrue(result);
+        verify(passwordEncoder).matches(rawPassword, encodedPassword);
+    }
+
+    /**
+     * Test 5: Verify getting user by email returns user when exists.
+     */
+    @Test
+    void testGetUserByEmail() {
+        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testUser));
+
+        User foundUser = authService.getUserByEmail("john.doe@example.com");
+
+        assertNotNull(foundUser);
+        assertEquals("john.doe@example.com", foundUser.getEmail());
+    }
+
+    /**
+     * Test 6: Verify student registration by teacher.
+     */
+    @Test
+    void testRegisterStudent() {
+        UserRegistrationDTO studentDTO = new UserRegistrationDTO();
+        studentDTO.setFirstName("Jane");
+        studentDTO.setLastName("Smith");
+        studentDTO.setEmail("jane.smith@example.com");
+        studentDTO.setPassword("password123");
+        studentDTO.setConfirmPassword("password123");
+        studentDTO.setDateOfBirth(LocalDate.of(2005, 1, 1));
+
+        when(userRepository.existsByEmail(studentDTO.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            user.setId(2L);
+            return user;
+        });
+
+        User registeredStudent = authService.registerStudent(studentDTO, "teacher@example.com");
+
+        assertNotNull(registeredStudent);
+        assertEquals("Jane", registeredStudent.getFirstName());
+        assertEquals(User.Role.STUDENT, registeredStudent.getRole());
+    }
+
+    /**
+     * Test 7: Verify profile update works correctly.
+     */
+    @Test
+    void testUpdateProfile() {
+        User updatedUser = new User();
+        updatedUser.setFirstName("JohnUpdated");
+        updatedUser.setLastName("DoeUpdated");
+        updatedUser.setDateOfBirth(LocalDate.of(1991, 1, 1));
+
+        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User result = authService.updateProfile("john.doe@example.com", updatedUser);
+
+        assertEquals("JohnUpdated", result.getFirstName());
+        assertEquals("DoeUpdated", result.getLastName());
+    }
+}
+

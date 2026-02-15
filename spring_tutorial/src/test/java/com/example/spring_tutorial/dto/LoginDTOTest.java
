@@ -1,0 +1,118 @@
+package com.example.spring_tutorial.dto;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Unit tests for LoginDTO.
+ * Tests login data transfer object.
+ */
+public class LoginDTOTest {
+
+    /**
+     * Test 1: Verify getEmail returns correct email.
+     */
+    @Test
+    void testGetEmail() {
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setEmail("john.doe@example.com");
+
+        assertEquals("john.doe@example.com", loginDTO.getEmail());
+    }
+
+    /**
+     * Test 2: Verify getPassword returns correct password.
+     */
+    @Test
+    void testGetPassword() {
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setPassword("password123");
+
+        assertEquals("password123", loginDTO.getPassword());
+    }
+
+    /**
+     * Test 3: Verify setEmail sets email correctly.
+     */
+    @Test
+    void testSetEmail() {
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setEmail("test@example.com");
+
+        assertEquals("test@example.com", loginDTO.getEmail());
+    }
+
+    /**
+     * Test 4: Verify setPassword sets password correctly.
+     */
+    @Test
+    void testSetPassword() {
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setPassword("newpassword");
+
+        assertEquals("newpassword", loginDTO.getPassword());
+    }
+
+    /**
+     * Test 5: Verify equals method works correctly.
+     */
+    @Test
+    void testEquals() {
+        LoginDTO dto1 = new LoginDTO();
+        dto1.setEmail("john.doe@example.com");
+        dto1.setPassword("password123");
+
+        LoginDTO dto2 = new LoginDTO();
+        dto2.setEmail("john.doe@example.com");
+        dto2.setPassword("password123");
+
+        assertEquals(dto1, dto2);
+    }
+
+    /**
+     * Test 6: Verify hashCode is consistent.
+     */
+    @Test
+    void testHashCode() {
+        LoginDTO dto1 = new LoginDTO();
+        dto1.setEmail("john.doe@example.com");
+        dto1.setPassword("password123");
+
+        LoginDTO dto2 = new LoginDTO();
+        dto2.setEmail("john.doe@example.com");
+        dto2.setPassword("password123");
+
+        assertEquals(dto1.hashCode(), dto2.hashCode());
+    }
+
+    /**
+     * Test 7: Verify toString returns meaningful string.
+     */
+    @Test
+    void testToString() {
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setEmail("john.doe@example.com");
+        loginDTO.setPassword("password123");
+
+        String str = loginDTO.toString();
+
+        assertNotNull(str);
+        assertTrue(str.contains("john.doe@example.com"));
+    }
+
+    /**
+     * Test 8: Verify canEqual method for proper equality checks.
+     */
+    @Test
+    void testCanEqual() {
+        LoginDTO dto1 = new LoginDTO();
+        dto1.setEmail("john.doe@example.com");
+
+        LoginDTO dto2 = new LoginDTO();
+        dto2.setEmail("john.doe@example.com");
+
+        assertTrue(dto1.canEqual(dto2));
+    }
+}
+

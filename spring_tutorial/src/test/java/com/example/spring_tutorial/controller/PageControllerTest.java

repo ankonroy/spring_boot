@@ -1,0 +1,183 @@
+package com.example.spring_tutorial.controller;
+
+import com.example.spring_tutorial.dto.StudentDTO;
+import com.example.spring_tutorial.model.Course;
+import com.example.spring_tutorial.model.Department;
+import com.example.spring_tutorial.model.Student;
+import com.example.spring_tutorial.model.Teacher;
+import com.example.spring_tutorial.service.CourseService;
+import com.example.spring_tutorial.service.DepartmentService;
+import com.example.spring_tutorial.service.StudentService;
+import com.example.spring_tutorial.service.TeacherService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ui.Model;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for PageController.
+ * Tests page rendering for views.
+ */
+@ExtendWith(MockitoExtension.class)
+public class PageControllerTest {
+
+    @Mock
+    private StudentService studentService;
+
+    @Mock
+    private TeacherService teacherService;
+
+    @Mock
+    private CourseService courseService;
+
+    @Mock
+    private DepartmentService departmentService;
+
+    @InjectMocks
+    private PageController pageController;
+
+    @Mock
+    private Model model;
+
+    private Student testStudent;
+    private Teacher testTeacher;
+    private Course testCourse;
+    private Department testDepartment;
+
+    @BeforeEach
+    void setUp() {
+        testDepartment = new Department();
+        testDepartment.setId(1L);
+        testDepartment.setName("Computer Science");
+        testDepartment.setCode("CS");
+
+        testTeacher = new Teacher();
+        testTeacher.setId(1L);
+        testTeacher.setFirstName("John");
+        testTeacher.setLastName("Doe");
+        testTeacher.setEmail("john.doe@example.com");
+        testTeacher.setTeacherId("TCH001");
+        testTeacher.setDepartment(testDepartment);
+
+        testCourse = new Course();
+        testCourse.setId(1L);
+        testCourse.setName("Data Structures");
+        testCourse.setCode("CS201");
+        testCourse.setCredits(4);
+        testCourse.setDepartment(testDepartment);
+
+        testStudent = new Student();
+        testStudent.setId(1L);
+        testStudent.setFirstName("Jane");
+        testStudent.setLastName("Smith");
+        testStudent.setEmail("jane.smith@example.com");
+        testStudent.setStudentId("STU001");
+        testStudent.setDepartment(testDepartment);
+    }
+
+    /**
+     * Test 1: Verify home page returns index view.
+     */
+    @Test
+    void testHome() {
+        String viewName = pageController.home(model);
+
+        assertEquals("index", viewName);
+    }
+
+    /**
+     * Test 2: Verify students page returns students list view.
+     */
+    @Test
+    void testStudents() {
+        when(studentService.getAllStudents()).thenReturn(List.of());
+
+        String viewName = pageController.students(model);
+
+        assertEquals("students", viewName);
+        verify(model).addAttribute(anyString(), any());
+    }
+
+    /**
+     * Test 3: Verify teachers page returns teachers list view.
+     */
+    @Test
+    void testTeachers() {
+        when(teacherService.getAllTeachers()).thenReturn(List.of());
+
+        String viewName = pageController.teachers(model);
+
+        assertEquals("teachers", viewName);
+        verify(model).addAttribute(anyString(), any());
+    }
+
+    /**
+     * Test 4: Verify courses page returns courses list view.
+     */
+    @Test
+    void testCourses() {
+        when(courseService.getAllCourses()).thenReturn(List.of());
+
+        String viewName = pageController.courses(model);
+
+        assertEquals("courses", viewName);
+        verify(model).addAttribute(anyString(), any());
+    }
+
+    /**
+     * Test 5: Verify departments page returns departments list view.
+     */
+    @Test
+    void testDepartments() {
+        when(departmentService.getAllDepartments()).thenReturn(List.of());
+
+        String viewName = pageController.departments(model);
+
+        assertEquals("departments", viewName);
+        verify(model).addAttribute(anyString(), any());
+    }
+
+    /**
+     * Test 6: Verify show add student page returns student form view.
+     */
+    @Test
+    void testShowAddStudent() {
+        when(departmentService.getAllDepartments()).thenReturn(List.of(testDepartment));
+
+        String viewName = pageController.showAddStudent(model);
+
+        assertEquals("student-form", viewName);
+        verify(model).addAttribute(eq("departments"), any());
+    }
+
+    /**
+     * Test 7: Verify process add student returns redirect.
+     */
+    @Test
+    void testProcessAddStudent() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setFirstName("New");
+        studentDTO.setLastName("Student");
+        studentDTO.setEmail("new.student@example.com");
+        studentDTO.setStudentId("STU002");
+        studentDTO.setDepartmentId(1L);
+
+        when(teacherService.createStudentByTeacher(any(), anyString())).thenReturn(new StudentDTO());
+
+        String viewName = pageController.processAddStudent(studentDTO, model);
+
+        assertEquals("redirect:/students", viewName);
+    }
+}
+

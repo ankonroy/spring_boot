@@ -1,0 +1,110 @@
+package com.example.spring_tutorial.repository;
+
+import com.example.spring_tutorial.model.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for UserRepository.
+ * Tests repository methods for user entity.
+ */
+@ExtendWith(MockitoExtension.class)
+public class UserRepositoryTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    private User testUser;
+
+    @BeforeEach
+    void setUp() {
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setFirstName("John");
+        testUser.setLastName("Doe");
+        testUser.setEmail("john.doe@example.com");
+        testUser.setPassword("encodedPassword");
+        testUser.setRole(User.Role.TEACHER);
+        testUser.setDateOfBirth(LocalDate.of(1990, 1, 1));
+    }
+
+    /**
+     * Test 1: Verify existsByEmail returns true when user exists.
+     */
+    @Test
+    void testExistsByEmail() {
+        when(userRepository.existsByEmail("john.doe@example.com")).thenReturn(true);
+
+        boolean exists = userRepository.existsByEmail("john.doe@example.com");
+
+        assertTrue(exists);
+        verify(userRepository).existsByEmail("john.doe@example.com");
+    }
+
+    /**
+     * Test 2: Verify findByEmail returns user when exists.
+     */
+    @Test
+    void testFindByEmail() {
+        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testUser));
+
+        Optional<User> found = userRepository.findByEmail("john.doe@example.com");
+
+        assertTrue(found.isPresent());
+        assertEquals("john.doe@example.com", found.get().getEmail());
+    }
+
+    /**
+     * Test 3: Verify findByEmail returns empty when user does not exist.
+     */
+    @Test
+    void testFindByEmailNotFound() {
+        when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
+
+        Optional<User> found = userRepository.findByEmail("notfound@example.com");
+
+        assertFalse(found.isPresent());
+    }
+
+    /**
+     * Test 4: Verify save method is called correctly.
+     */
+    @Test
+    void testSave() {
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            user.setId(1L);
+            return user;
+        });
+
+        User savedUser = userRepository.save(testUser);
+
+        assertNotNull(savedUser);
+        assertEquals(1L, savedUser.getId());
+        verify(userRepository).save(any(User.class));
+    }
+
+    /**
+     * Test 5: Verify delete method is called correctly.
+     */
+    @Test
+    void testDelete() {
+        doNothing().when(userRepository).delete(testUser);
+
+        userRepository.delete(testUser);
+
+        verify(userRepository).delete(testUser);
+    }
+}
+

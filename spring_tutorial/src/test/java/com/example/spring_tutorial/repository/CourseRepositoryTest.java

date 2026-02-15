@@ -1,0 +1,75 @@
+package com.example.spring_tutorial.repository;
+
+import com.example.spring_tutorial.model.Course;
+import com.example.spring_tutorial.model.Department;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for CourseRepository.
+ * Tests repository methods for course entity.
+ */
+@ExtendWith(MockitoExtension.class)
+public class CourseRepositoryTest {
+
+    @Mock
+    private CourseRepository courseRepository;
+
+    private Course testCourse;
+    private Department testDepartment;
+
+    @BeforeEach
+    void setUp() {
+        testDepartment = new Department();
+        testDepartment.setId(1L);
+        testDepartment.setName("Computer Science");
+        testDepartment.setCode("CS");
+        testDepartment.setEstablishedDate(LocalDate.of(2020, 1, 1));
+
+        testCourse = new Course();
+        testCourse.setId(1L);
+        testCourse.setName("Data Structures");
+        testCourse.setCode("CS201");
+        testCourse.setCredits(4);
+        testCourse.setDescription("Introduction to Data Structures");
+        testCourse.setDepartment(testDepartment);
+    }
+
+    /**
+     * Test 1: Verify existsByCode returns true when course exists.
+     */
+    @Test
+    void testExistsByCode() {
+        when(courseRepository.existsByCode("CS201")).thenReturn(true);
+
+        boolean exists = courseRepository.existsByCode("CS201");
+
+        assertTrue(exists);
+        verify(courseRepository).existsByCode("CS201");
+    }
+
+    /**
+     * Test 2: Verify findByCode returns course when exists.
+     */
+    @Test
+    void testFindByCode() {
+        when(courseRepository.findByCode("CS201")).thenReturn(Optional.of(testCourse));
+
+        Optional<Course> found = courseRepository.findByCode("CS201");
+
+        assertTrue(found.isPresent());
+        assertEquals("Data Structures", found.get().getName());
+    }
+}
+

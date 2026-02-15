@@ -1,0 +1,201 @@
+package com.example.spring_tutorial.service;
+
+import com.example.spring_tutorial.dto.StudentDTO;
+import com.example.spring_tutorial.dto.TeacherStudentDTO;
+import com.example.spring_tutorial.exception.ResourceNotFoundException;
+import com.example.spring_tutorial.model.Department;
+import com.example.spring_tutorial.model.Student;
+import com.example.spring_tutorial.model.Teacher;
+import com.example.spring_tutorial.repository.DepartmentRepository;
+import com.example.spring_tutorial.repository.StudentRepository;
+import com.example.spring_tutorial.repository.TeacherRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for TeacherService.
+ * Tests teacher CRUD operations and student creation.
+ */
+@ExtendWith(MockitoExtension.class)
+public class TeacherServiceTest {
+
+    @Mock
+    private TeacherRepository teacherRepository;
+
+    @Mock
+    private DepartmentRepository departmentRepository;
+
+    @Mock
+    private StudentRepository studentRepository;
+
+    @InjectMocks
+    private TeacherService teacherService;
+
+    private Teacher testTeacher;
+    private Department testDepartment;
+
+    @BeforeEach
+    void setUp() {
+        testDepartment = new Department();
+        testDepartment.setId(1L);
+        testDepartment.setName("Computer Science");
+        testDepartment.setCode("CS");
+        testDepartment.setEstablishedDate(LocalDate.of(2020, 1, 1));
+
+        testTeacher = new Teacher();
+        testTeacher.setId(1L);
+        testTeacher.setFirstName("John");
+        testTeacher.setLastName("Doe");
+        testTeacher.setEmail("john.doe@example.com");
+        testTeacher.setTeacherId("TCH001");
+        testTeacher.setDepartment(testDepartment);
+        testTeacher.setHireDate(LocalDate.of(2020, 1, 1));
+        testTeacher.setSpecialization("Data Structures");
+    }
+
+    /**
+     * Test 1: Verify successful teacher creation.
+     */
+    @Test
+    void testCreateTeacher() {
+        Teacher newTeacher = new Teacher();
+        newTeacher.setFirstName("Jane");
+        newTeacher.setLastName("Smith");
+        newTeacher.setEmail("jane.smith@example.com");
+        newTeacher.setTeacherId("TCH002");
+        newTeacher.setDepartment(testDepartment);
+
+        when(teacherRepository.existsByEmail("jane.smith@example.com")).thenReturn(false);
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(testDepartment));
+        when(teacherRepository.save(any(Teacher.class))).thenAnswer(invocation -> {
+            Teacher t = invocation.getArgument(0);
+            t.setId(2L);
+            return t;
+        });
+
+        Teacher created = teacherService.createTeacher(newTeacher);
+
+        assertNotNull(created);
+        assertEquals("Jane", created.getFirstName());
+        assertEquals("TCH002", created.getTeacherId());
+        verify(teacherRepository).save(any(Teacher.class));
+    }
+
+    /**
+     * Test 2: Verify getting all teachers returns list.
+     */
+    @Test
+    void testGetAllTeachers() {
+        when(teacherRepository.findAll()).thenReturn(List.of(testTeacher));
+
+        List<Teacher> teachers = teacherService.getAllTeachers();
+
+        assertNotNull(teachers);
+        assertEquals(1, teachers.size());
+        assertEquals("John", teachers.get(0).getFirstName());
+    }
+
+    /**
+     * Test 3: Verify getting teacher by ID returns teacher when exists.
+     */
+    @Test
+    void testGetTeacherById() {
+        when(teacherRepository.findById(1L)).thenReturn(Optional.of(testTeacher));
+
+        Teacher found = teacherService.getTeacherById(1L);
+
+        assertNotNull(found);
+        assertEquals(1L, found.getId());
+        assertEquals("John", found.getFirstName());
+    }
+
+    /**
+     * Test 4: Verify getting teacher by email returns teacher when exists.
+     */
+    @Test
+    void testGetTeacherByEmail() {
+        when(teacherRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testTeacher));
+
+        Teacher found = teacherService.getTeacherByEmail("john.doe@example.com");
+
+        assertNotNull(found);
+        assertEquals("john.doe@example.com", found.getEmail());
+    }
+
+    /**
+     * Test 5: Verify teacher update works correctly.
+     */
+    @Test
+    void testUpdateTeacher() {
+        Teacher updatedTeacher = new Teacher();
+        updatedTeacher.setFirstName("JohnUpdated");
+        updatedTeacher.setLastName("DoeUpdated");
+        updatedTeacher.setHireDate(LocalDate.of(2021, 1, 1));
+        updatedTeacher.setSpecialization("Algorithms");
+
+        when(teacherRepository.findById(1L)).thenReturn(Optional.of(testTeacher));
+        when(teacherRepository.save(any(Teacher.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Teacher result = teacherService.updateTeacher(1L, updatedTeacher);
+
+        assertEquals("JohnUpdated", result.getFirstName());
+        assertEquals("Algorithms", result.getSpecialization());
+    }
+
+    /**
+     * Test 6: Verify teacher deletion works correctly.
+     */
+    @Test
+    void testDeleteTeacher() {
+        when(teacherRepository.findById(1L)).thenReturn(Optional.of(testTeacher));
+        doNothing().when(teacherRepository).delete(testTeacher);
+
+        teacherService.deleteTeacher(1L);
+
+        verify(teacherRepository).delete(testTeacher);
+    }
+
+    /**
+     * Test 7: Verify teacher can create student profile.
+     */
+    @Test
+    void testCreateStudentByTeacher() {
+        TeacherStudentDTO dto = new TeacherStudentDTO();
+        dto.setFirstName("New");
+        dto.setLastName("Student");
+        dto.setEmail("new.student@example.com");
+        dto.setStudentId("STU001");
+        dto.setDepartmentId(1L);
+        dto.setDateOfBirth(LocalDate.of(2005, 1, 1));
+
+        when(teacherRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testTeacher));
+        when(studentRepository.existsByEmail("new.student@example.com")).thenReturn(false);
+        when(studentRepository.existsByStudentId("STU001")).thenReturn(false);
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(testDepartment));
+        when(studentRepository.save(any(Student.class))).thenAnswer(invocation -> {
+            Student s = invocation.getArgument(0);
+            s.setId(1L);
+            return s;
+        });
+
+        StudentDTO created = teacherService.createStudentByTeacher(dto, "john.doe@example.com");
+
+        assertNotNull(created);
+        assertEquals("New", created.getFirstName());
+        assertEquals("STU001", created.getStudentId());
+    }
+}
+

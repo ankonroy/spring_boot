@@ -1,0 +1,151 @@
+package com.example.spring_tutorial.exception;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Unit tests for ResourceNotFoundException.
+ * Tests custom exception behavior.
+ */
+public class ResourceNotFoundExceptionTest {
+
+    /**
+     * Test 1: Verify exception message is returned correctly.
+     */
+    @Test
+    void testGetMessage() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Student", "id", 1L);
+        
+        assertTrue(exception.getMessage().contains("Student"));
+        assertTrue(exception.getMessage().contains("id"));
+        assertTrue(exception.getMessage().contains("1"));
+    }
+
+    /**
+     * Test 2: Verify localized message is returned.
+     */
+    @Test
+    void testGetLocalizedMessage() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Course", "code", "CS101");
+        
+        assertNotNull(exception.getLocalizedMessage());
+    }
+
+    /**
+     * Test 3: Verify exception toString returns meaningful string.
+     */
+    @Test
+    void testToString() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Teacher", "email", "test@example.com");
+        
+        String str = exception.toString();
+        assertNotNull(str);
+        assertTrue(str.contains("ResourceNotFoundException"));
+    }
+
+    /**
+     * Test 4: Verify getCause returns null when not set.
+     */
+    @Test
+    void testGetCause() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Department", "id", 1L);
+        
+        assertNull(exception.getCause());
+    }
+
+    /**
+     * Test 5: Verify fillInStackTrace works.
+     */
+    @Test
+    void testFillInStackTrace() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Student", "id", 1L);
+        
+        assertNotNull(exception.fillInStackTrace());
+    }
+
+    /**
+     * Test 6: Verify getStackTrace returns array.
+     */
+    @Test
+    void testGetStackTrace() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Course", "id", 1L);
+        
+        assertNotNull(exception.getStackTrace());
+    }
+
+    /**
+     * Test 7: Verify setStackTrace works.
+     */
+    @Test
+    void testSetStackTrace() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Teacher", "id", 1L);
+        StackTraceElement[] stackTrace = new StackTraceElement[0];
+        
+        exception.setStackTrace(stackTrace);
+        
+        assertNotNull(exception.getStackTrace());
+    }
+
+    /**
+     * Test 8: Verify initCause works.
+     */
+    @Test
+    void testInitCause() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Student", "id", 1L);
+        
+        exception.initCause(new RuntimeException("Original cause"));
+        
+        assertNotNull(exception.getCause());
+    }
+
+    /**
+     * Test 9: Verify addSuppressed works.
+     */
+    @Test
+    void testAddSuppressed() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Course", "id", 1L);
+        
+        exception.addSuppressed(new Throwable("Suppressed exception"));
+        
+        assertNotNull(exception.getSuppressed());
+    }
+
+    /**
+     * Test 10: Verify getSuppressed returns empty array when no suppressed exceptions.
+     */
+    @Test
+    void testGetSuppressed() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Department", "id", 1L);
+        
+        assertNotNull(exception.getSuppressed());
+        assertEquals(0, exception.getSuppressed().length);
+    }
+
+    /**
+     * Test 11: Verify printStackTrace works without errors.
+     */
+    @Test
+    void testPrintStackTrace() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Teacher", "id", 1L);
+        
+        exception.printStackTrace();
+        
+        // No exception should be thrown
+        assertTrue(true);
+    }
+
+    /**
+     * Test 12: Verify printStackTrace with print stream works.
+     */
+    @Test
+    void testPrintStackTrace2() {
+        ResourceNotFoundException exception = new ResourceNotFoundException("Student", "id", 1L);
+        
+        exception.printStackTrace(System.out);
+        
+        // No exception should be thrown
+        assertTrue(true);
+    }
+}
+

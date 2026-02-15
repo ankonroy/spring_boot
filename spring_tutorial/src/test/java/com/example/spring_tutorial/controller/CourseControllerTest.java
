@@ -1,0 +1,132 @@
+package com.example.spring_tutorial.controller;
+
+import com.example.spring_tutorial.model.Course;
+import com.example.spring_tutorial.model.Department;
+import com.example.spring_tutorial.service.CourseService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ui.Model;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for CourseController.
+ * Tests course CRUD operations via controller.
+ */
+@ExtendWith(MockitoExtension.class)
+public class CourseControllerTest {
+
+    @Mock
+    private CourseService courseService;
+
+    @InjectMocks
+    private CourseController courseController;
+
+    @Mock
+    private Model model;
+
+    private Course testCourse;
+    private Department testDepartment;
+
+    @BeforeEach
+    void setUp() {
+        testDepartment = new Department();
+        testDepartment.setId(1L);
+        testDepartment.setName("Computer Science");
+        testDepartment.setCode("CS");
+        testDepartment.setEstablishedDate(LocalDate.of(2020, 1, 1));
+
+        testCourse = new Course();
+        testCourse.setId(1L);
+        testCourse.setName("Data Structures");
+        testCourse.setCode("CS201");
+        testCourse.setCredits(4);
+        testCourse.setDescription("Introduction to Data Structures");
+        testCourse.setDepartment(testDepartment);
+    }
+
+    /**
+     * Test 1: Verify create course returns redirect view.
+     */
+    @Test
+    void testCreateCourse() {
+        Course newCourse = new Course();
+        newCourse.setName("Algorithms");
+        newCourse.setCode("CS301");
+        newCourse.setCredits(4);
+
+        when(courseService.createCourse(any(Course.class))).thenReturn(testCourse);
+
+        String viewName = courseController.createCourse(newCourse, model);
+
+        assertEquals("redirect:/courses", viewName);
+        verify(courseService).createCourse(any(Course.class));
+    }
+
+    /**
+     * Test 2: Verify delete course returns redirect.
+     */
+    @Test
+    void testDeleteCourse() {
+        doNothing().when(courseService).deleteCourse(1L);
+
+        String viewName = courseController.deleteCourse(1L);
+
+        assertEquals("redirect:/courses", viewName);
+        verify(courseService).deleteCourse(1L);
+    }
+
+    /**
+     * Test 3: Verify getting all courses returns courses list view.
+     */
+    @Test
+    void testGetAllCourses() {
+        when(courseService.getAllCourses()).thenReturn(List.of(testCourse));
+
+        String viewName = courseController.getAllCourses(model);
+
+        assertEquals("courses", viewName);
+        verify(model).addAttribute("courses", List.of(testCourse));
+    }
+
+    /**
+     * Test 4: Verify getting course by ID returns course detail view.
+     */
+    @Test
+    void testGetCourseById() {
+        when(courseService.getCourseById(1L)).thenReturn(testCourse);
+
+        String viewName = courseController.getCourseById(1L, model);
+
+        assertEquals("course-detail", viewName);
+        verify(model).addAttribute("course", testCourse);
+    }
+
+    /**
+     * Test 5: Verify update course returns redirect.
+     */
+    @Test
+    void testUpdateCourse() {
+        Course updatedCourse = new Course();
+        updatedCourse.setName("Advanced Data Structures");
+        updatedCourse.setCode("CS201");
+        updatedCourse.setCredits(3);
+
+        when(courseService.updateCourse(eq(1L), any(Course.class))).thenReturn(testCourse);
+
+        String viewName = courseController.updateCourse(1L, updatedCourse, model);
+
+        assertEquals("redirect:/courses", viewName);
+        verify(courseService).updateCourse(eq(1L), any(Course.class));
+    }
+}
+
