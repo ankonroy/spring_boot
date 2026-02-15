@@ -1,0 +1,88 @@
+package com.example.spring_tutorial.config;
+
+import com.example.spring_tutorial.model.User;
+import com.example.spring_tutorial.repository.UserRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Collections;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+/**
+ * Unit tests for SecurityConfig.
+ * Tests security configuration beans.
+ */
+@ExtendWith(MockitoExtension.class)
+public class SecurityConfigTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private SecurityConfig securityConfig;
+
+    /**
+     * Test 1: Verify password encoder returns BCrypt encoder.
+     */
+    @Test
+    void testPasswordEncoder() {
+        PasswordEncoder encoder = securityConfig.passwordEncoder();
+
+        assertNotNull(encoder);
+        assertTrue(encoder instanceof BCryptPasswordEncoder);
+        
+        // Verify encoding works
+        String encoded = encoder.encode("password123");
+        assertNotNull(encoded);
+        assertTrue(encoder.matches("password123", encoded));
+    }
+
+    /**
+     * Test 2: Verify user details service loads user by email.
+     */
+    @Test
+    void testUserDetailsService() {
+        User testUser = new User();
+        testUser.setId(1L);
+        testUser.setEmail("john.doe@example.com");
+        testUser.setPassword("encodedPassword");
+        testUser.setRole(User.Role.TEACHER);
+
+        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testUser));
+
+        var userDetailsService = securityConfig.userDetailsService();
+        
+        assertNotNull(userDetailsService);
+    }
+
+    /**
+     * Test 3: Verify filter chain configuration.
+     */
+    @Test
+    void testFilterChain() throws Exception {
+        var filterChain = securityConfig.filterChain(null);
+        
+        assertNotNull(filterChain);
+    }
+
+    /**
+     * Test 4: Verify access denied handler is created.
+     */
+    @Test
+    void testAccessDeniedHandler() {
+        var handler = securityConfig.accessDeniedHandler();
+        
+        assertNotNull(handler);
+        assertTrue(handler instanceof SecurityConfig.CustomAccessDeniedHandler);
+    }
+}
+

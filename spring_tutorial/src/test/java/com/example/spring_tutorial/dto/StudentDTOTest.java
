@@ -1,0 +1,202 @@
+package com.example.spring_tutorial.dto;
+
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Unit tests for StudentDTO.
+ * Tests student data transfer object.
+ */
+public class StudentDTOTest {
+
+    /**
+     * Test 1: Verify getId returns correct ID.
+     */
+    @Test
+    void testGetId() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setId(1L);
+
+        assertEquals(1L, studentDTO.getId());
+    }
+
+    /**
+     * Test 2: Verify getFirstName returns correct first name.
+     */
+    @Test
+    void testGetFirstName() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setFirstName("John");
+
+        assertEquals("John", studentDTO.getFirstName());
+    }
+
+    /**
+     * Test 3: Verify getLastName returns correct last name.
+     */
+    @Test
+    void testGetLastName() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setLastName("Doe");
+
+        assertEquals("Doe", studentDTO.getLastName());
+    }
+
+    /**
+     * Test 4: Verify getEmail returns correct email.
+     */
+    @Test
+    void testGetEmail() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setEmail("john.doe@example.com");
+
+        assertEquals("john.doe@example.com", studentDTO.getEmail());
+    }
+
+    /**
+     * Test 5: Verify getStudentId returns correct student ID.
+     */
+    @Test
+    void testGetStudentId() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setStudentId("STU001");
+
+        assertEquals("STU001", studentDTO.getStudentId());
+    }
+
+    /**
+     * Test 6: Verify getDateOfBirth returns correct date.
+     */
+    @Test
+    void testGetDateOfBirth() {
+        StudentDTO studentDTO = new StudentDTO();
+        LocalDate dob = LocalDate.of(2000, 1, 1);
+        studentDTO.setDateOfBirth(dob);
+
+        assertEquals(dob, studentDTO.getDateOfBirth());
+    }
+
+    /**
+     * Test 7: Verify getEnrollmentDate returns correct date.
+     */
+    @Test
+    void testGetEnrollmentDate() {
+        StudentDTO studentDTO = new StudentDTO();
+        LocalDate enrollmentDate = LocalDate.of(2020, 9, 1);
+        studentDTO.setEnrollmentDate(enrollmentDate);
+
+        assertEquals(enrollmentDate, studentDTO.getEnrollmentDate());
+    }
+
+    /**
+     * Test 8: Verify getDepartmentId returns correct department ID.
+     */
+    @Test
+    void testGetDepartmentId() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setDepartmentId(1L);
+
+        assertEquals(1L, studentDTO.getDepartmentId());
+    }
+
+    /**
+     * Test 9: Verify getDepartmentName returns correct department name.
+     */
+    @Test
+    void testGetDepartmentName() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setDepartmentName("Computer Science");
+
+        assertEquals("Computer Science", studentDTO.getDepartmentName());
+    }
+
+    /**
+     * Test 10: Verify getCreatedBy returns correct creator email.
+     */
+    @Test
+    void testGetCreatedBy() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setCreatedBy("teacher@example.com");
+
+        assertEquals("teacher@example.com", studentDTO.getCreatedBy());
+    }
+
+    /**
+     * Test 11: Verify equals method works correctly.
+     */
+    @Test
+    void testEquals() {
+        StudentDTO dto1 = new StudentDTO();
+        dto1.setId(1L);
+        dto1.setEmail("john.doe@example.com");
+
+        StudentDTO dto2 = new StudentDTO();
+        dto2.setId(1L);
+        dto2.setEmail("john.doe@example.com");
+
+        assertEquals(dto1, dto2);
+    }
+
+    /**
+     * Test 12: Verify hashCode is consistent.
+     */
+    @Test
+    void testHashCode() {
+        StudentDTO dto1 = new StudentDTO();
+        dto1.setId(1L);
+        dto1.setEmail("john.doe@example.com");
+
+        StudentDTO dto2 = new StudentDTO();
+        dto2.setId(1L);
+        dto2.setEmail("john.doe@example.com");
+
+        assertEquals(dto1.hashCode(), dto2.hashCode());
+    }
+
+    /**
+     * Test 13: Verify toString returns meaningful string.
+     */
+    @Test
+    void testToString() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setId(1L);
+        studentDTO.setFirstName("John");
+        studentDTO.setLastName("Doe");
+        studentDTO.setEmail("john.doe@example.com");
+
+        String str = studentDTO.toString();
+
+        assertNotNull(str);
+        assertTrue(str.contains("John"));
+        assertTrue(str.contains("Doe"));
+    }
+
+    /**
+     * Test 14: Verify setters work correctly.
+     */
+    @Test
+    void testSetFirstName() {
+        StudentDTO studentDTO = new StudentDTO();
+        studentDTO.setFirstName("Jane");
+
+        assertEquals("Jane", studentDTO.getFirstName());
+    }
+
+    /**
+     * Test 15: Verify canEqual method for proper equality checks.
+     */
+    @Test
+    void testCanEqual() {
+        StudentDTO dto1 = new StudentDTO();
+        dto1.setId(1L);
+
+        StudentDTO dto2 = new StudentDTO();
+        dto2.setId(1L);
+
+        assertTrue(dto1.canEqual(dto2));
+    }
+}
+
